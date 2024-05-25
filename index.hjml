@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRC - WEBAPP RG OCR</title>
+    <style>
+        .ocr {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .ocr * {
+            margin-top: 5px;
+        }
+        .text {
+            width: 80%;
+            height: 150px;
+        }
+        .progress-bar {
+            width: 80%;
+            height: 20px;
+            background-color: #f3f3f3;
+            border: 1px solid #ccc;
+            position: relative;
+            margin-top: 10px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .progress-info {
+            width: 80%;
+            text-align: center;
+        }
+        #video, #canvas {
+            display: none;
+        }
+        #video {
+            max-width: 100%;
+            height: auto;
+        }
+        #canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .captured-image {
+            display: none;
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ocr">
+        <h1>Imagem PDF OCR</h1>
+        <h2 class="message"></h2>
+        <span>Selecione o PDF ou Capture uma Imagem</span>
+        <input type="file" class="file">
+        <button class="btn">Gerar OCR</button>
+        <button class="capture-btn">Capturar Imagem</button>
+        <video id="video" autoplay></video>
+        <canvas id="canvas"></canvas>
+        <img class="captured-image" src="#" alt="Captured Image">
+        <button class="snap-btn">Tirar Foto</button>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-info"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.0/dist/tesseract.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
