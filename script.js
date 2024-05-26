@@ -44,65 +44,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-  snapBtn.addEventListener('click', () => {
-    alert("Botão de tirar foto clicado");
-    const context = canvas.getContext('2d');
-    const videoWidth = video.videoWidth;
-    const videoHeight = video.videoHeight;
+    snapBtn.addEventListener('click', () => {
+        alert("Botão de tirar foto clicado");
+        const context = canvas.getContext('2d');
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
 
-    const maxCanvasWidth = window.innerWidth * 0.8; // 80% da largura da janela
-    const aspectRatio = videoWidth / videoHeight;
-    let canvasWidth = maxCanvasWidth;
-    let canvasHeight = maxCanvasWidth / aspectRatio;
+        const maxCanvasWidth = window.innerWidth * 0.8; // 80% da largura da janela
+        const aspectRatio = videoWidth / videoHeight;
+        let canvasWidth = maxCanvasWidth;
+        let canvasHeight = maxCanvasWidth / aspectRatio;
 
-    if (canvasHeight > window.innerHeight) {
-        canvasHeight = window.innerHeight * 0.8; // 80% da altura da janela
-        canvasWidth = canvasHeight * aspectRatio;
-    }
-
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-
-    context.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvasWidth, canvasHeight);
-    video.style.display = 'none';
-    snapBtn.style.display = 'none';
-    capturedImage.style.display = 'block';
-    capturedImage.src = canvas.toDataURL('image/jpeg');
-    imageBase64 = capturedImage.src.split(',')[1];
-
-    // Pré-processamento básico da imagem
-    const image = new Image();
-    image.onload = () => {
-        const canvasTemp = document.createElement('canvas');
-        const contextTemp = canvasTemp.getContext('2d');
-
-        canvasTemp.width = image.width;
-        canvasTemp.height = image.height;
-        contextTemp.drawImage(image, 0, 0, image.width, image.height);
-
-        // Aplicar pré-processamento (aqui você pode tentar ajustar os parâmetros)
-        // Por exemplo: aumentar o contraste
-        const imageData = contextTemp.getImageData(0, 0, image.width, image.height);
-        for (let i = 0; i < imageData.data.length; i += 4) {
-            const avg = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
-            imageData.data[i] = avg; // R
-            imageData.data[i + 1] = avg; // G
-            imageData.data[i + 2] = avg; // B
+        if (canvasHeight > window.innerHeight) {
+            canvasHeight = window.innerHeight * 0.8; // 80% da altura da janela
+            canvasWidth = canvasHeight * aspectRatio;
         }
-        contextTemp.putImageData(imageData, 0, 0);
 
-        // Converter imagem para base64 após pré-processamento
-        const processedImageBase64 = canvasTemp.toDataURL('image/jpeg').split(',')[1];
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
-        // Chamar a função de OCR com a imagem pré-processada
-        processOCR(processedImageBase64);
-    };
-    image.src = capturedImage.src;
-    canvas.style.display = 'none';
-    alert("Foto capturada e exibida");
-    fileInput.value = ''; // Limpa o arquivo selecionado anteriormente
-});
+        context.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvasWidth, canvasHeight);
+        video.style.display = 'none';
+        snapBtn.style.display = 'none';
+        capturedImage.style.display = 'block';
+        capturedImage.src = canvas.toDataURL('image/jpeg');
+        imageBase64 = capturedImage.src.split(',')[1];
 
+        // Pré-processamento básico da imagem
+        const image = new Image();
+        image.onload = () => {
+            const canvasTemp = document.createElement('canvas');
+            const contextTemp = canvasTemp.getContext('2d');
+
+            canvasTemp.width = image.width;
+            canvasTemp.height = image.height;
+            contextTemp.drawImage(image, 0, 0, image.width, image.height);
+
+            // Aplicar pré-processamento (binarização simples)
+            const imageData = contextTemp.getImageData(0, 0, image.width, image.height);
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                const avg = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+                const binary = avg > 128 ? 255 : 0;
+                imageData.data[i] = binary; // R
+                imageData.data[i + 1] = binary; // G
+                imageData.data[i + 2] = binary; // B
+            }
+            contextTemp.putImageData(imageData, 0, 0);
+
+            // Converter imagem para base64 após pré-processamento
+            const processedImageBase64 = canvasTemp.toDataURL('image/jpeg').split(',')[1];
+
+            // Chamar a função de OCR com a imagem pré-processada
+            processOCR(processedImageBase64);
+        };
+        image.src = capturedImage.src;
+        canvas.style.display = 'none';
+        alert("Foto capturada e exibida");
+        fileInput.value = ''; // Limpa o arquivo selecionado anteriormente
+    });
 
     btn.addEventListener('click', () => {
         alert("Botão de gerar OCR clicado");
@@ -139,15 +138,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function processOCR(base64Data) {
         alert("Processando OCR");
+        progressBarFill.style.width = '50%';
+        progressInfo.innerHTML = `Carregando: 50%`;
+
         Tesseract.recognize(
             `data:image/jpeg;base64,${base64Data}`,
-            'por', // Use the Portuguese language trained data
+            'eng',
             {
                 logger: m => {
                     if (m.status === 'recognizing text') {
-                        let percentComplete = Math.round(m.progress * 100);
-                        progressBarFill.style.width = `${percentComplete}%`;
-                        progressInfo.innerHTML = `Carregando: ${percentComplete}%`;
+                        const progress = Math.round(m.progress * 100);
+                        progressBarFill.style.width = `${progress}%`;
+                        progressInfo.innerHTML = `Carregando: ${progress}%`;
                     }
                 }
             }
