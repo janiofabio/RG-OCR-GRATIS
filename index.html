@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRC - WEBAPP RG OCR - GRATIS</title>
+    <title>TRC - WEBAPP RG OCR - DRIVE X OCR - API APP SCRIPT DA GOOGLE </title>
 
     <style>
         .ocr {
@@ -39,14 +39,14 @@
             width: 80%;
             text-align: center;
         }
-        #video, #canvas {
+        #video, #canvas, #canvasOutput {
             display: none;
         }
         #video {
             max-width: 100%;
             height: auto;
         }
-        #canvas {
+        #canvas, #canvasOutput {
             max-width: 100%;
             height: auto;
         }
@@ -57,6 +57,7 @@
             margin-top: 10px;
         }
     </style>
+
 </head>
 <body>
     <div class="ocr">
@@ -68,16 +69,22 @@
         <button class="capture-btn">Capturar Imagem</button>
         <video id="video" autoplay></video>
         <canvas id="canvas"></canvas>
-        <img class="captured-image" src="#" alt="Imagem Capturada">
+        <img class="captured-image" src="#" alt="Captured Image">
+        <canvas id="canvasOutput"></canvas> <!-- Canvas para mostrar imagem processada -->
         <button class="snap-btn">Tirar Foto</button>
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
         </div>
         <div class="progress-info"></div>
     </div>
+
+    <!-- OpenCV.js -->
+    <script async src="https://docs.opencv.org/master/opencv.js" onload="console.log('OpenCV.js carregado')"></script>
+    <!-- Tesseract.js -->
+    <script async src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+    <!-- FileSaver.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jimp/browser/lib/jimp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+    <!-- Script JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
