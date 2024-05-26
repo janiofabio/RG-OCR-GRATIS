@@ -73,10 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Pré-processamento com Jimp
         Jimp.read(Buffer.from(imageBase64, 'base64'))
             .then(image => {
-                // Convertendo para grayscale e aumentando o contraste
                 return image
+                    .resize(1024, Jimp.AUTO) // Redimensiona a imagem para largura de 1024px
+                    .quality(100) // Define a qualidade da imagem para 100
                     .greyscale() // Converte para escala de cinza
                     .contrast(1) // Aumenta o contraste
+                    .normalize() // Normaliza a imagem
                     .getBase64Async(Jimp.MIME_JPEG); // Converte de volta para base64
             })
             .then(processedBase64 => {
