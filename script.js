@@ -70,34 +70,24 @@ document.addEventListener('DOMContentLoaded', () => {
         capturedImage.src = canvas.toDataURL('image/jpeg');
         imageBase64 = capturedImage.src.split(',')[1];
 
-        // Pré-processamento básico da imagem
-        const image = new Image();
-        image.onload = () => {
-            const canvasTemp = document.createElement('canvas');
-            const contextTemp = canvasTemp.getContext('2d');
+        // Pré-processamento com Jimp
+        Jimp.read(Buffer.from(imageBase64, 'base64'))
+            .then(image => {
+                // Convertendo para grayscale e aumentando o contraste
+                return image
+                    .greyscale() // Converte para escala de cinza
+                    .contrast(1) // Aumenta o contraste
+                    .getBase64Async(Jimp.MIME_JPEG); // Converte de volta para base64
+            })
+            .then(processedBase64 => {
+                const processedImageBase64 = processedBase64.split(',')[1];
+                processOCR(processedImageBase64);
+            })
+            .catch(err => {
+                console.error('Erro no pré-processamento da imagem:', err);
+                alert('Erro no pré-processamento da imagem: ' + err.message);
+            });
 
-            canvasTemp.width = image.width;
-            canvasTemp.height = image.height;
-            contextTemp.drawImage(image, 0, 0, image.width, image.height);
-
-            // Aplicar pré-processamento (binarização simples)
-            const imageData = contextTemp.getImageData(0, 0, image.width, image.height);
-            for (let i = 0; i < imageData.data.length; i += 4) {
-                const avg = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
-                const binary = avg > 128 ? 255 : 0;
-                imageData.data[i] = binary; // R
-                imageData.data[i + 1] = binary; // G
-                imageData.data[i + 2] = binary; // B
-            }
-            contextTemp.putImageData(imageData, 0, 0);
-
-            // Converter imagem para base64 após pré-processamento
-            const processedImageBase64 = canvasTemp.toDataURL('image/jpeg').split(',')[1];
-
-            // Chamar a função de OCR com a imagem pré-processada
-            processOCR(processedImageBase64);
-        };
-        image.src = capturedImage.src;
         canvas.style.display = 'none';
         alert("Foto capturada e exibida");
         fileInput.value = ''; // Limpa o arquivo selecionado anteriormente
@@ -143,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Tesseract.recognize(
             `data:image/jpeg;base64,${base64Data}`,
-            'eng',
+            'por', // Define o idioma para português
             {
                 logger: m => {
                     if (m.status === 'recognizing text') {
