@@ -70,25 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
         capturedImage.src = canvas.toDataURL('image/jpeg');
         imageBase64 = capturedImage.src.split(',')[1];
 
-        // Pré-processamento com Jimp
-        Jimp.read(Buffer.from(imageBase64, 'base64'))
-            .then(image => {
-                return image
-                    .resize(1024, Jimp.AUTO) // Redimensiona a imagem para largura de 1024px
-                    .quality(100) // Define a qualidade da imagem para 100
-                    .greyscale() // Converte para escala de cinza
-                    .contrast(1) // Aumenta o contraste
-                    .normalize() // Normaliza a imagem
-                    .getBase64Async(Jimp.MIME_JPEG); // Converte de volta para base64
-            })
-            .then(processedBase64 => {
-                const processedImageBase64 = processedBase64.split(',')[1];
-                processOCR(processedImageBase64);
-            })
-            .catch(err => {
-                console.error('Erro no pré-processamento da imagem:', err);
-                alert('Erro no pré-processamento da imagem: ' + err.message);
-            });
+        // Pré-processamento com OpenCV.js
+        cv['onRuntimeInitialized'] = () => {
+            const src = cv.imread(capturedImage);
+            const dst = new cv.Mat();
+            cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+            cv.threshold(src, src, 120, 200, cv.THRESH_BINARY);
+            cv.imshow('canvasOutput', src);
+            processedBase64 = canvas.toDataURL('image/jpeg').split(',')[1];
+            processOCR(processedBase64);
+        };
 
         canvas.style.display = 'none';
         alert("Foto capturada e exibida");
@@ -109,60 +100,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         msg.innerHTML = `Carregando...`;
-        progressBarFill.style.width = '0%';
-        progressInfo.innerHTML = '';
-        alert("Iniciando processamento OCR");
-
-        if (file) {
-            let fr = new FileReader();
-            fr.readAsDataURL(file);
-            fr.onload = () => {
-                let res = fr.result;
-                let b64 = res.split("base64,")[1];
-                alert("Arquivo lido, iniciando OCR");
-                processOCR(b64);
-            };
-        } else if (imageBase64) {
-            alert("Imagem capturada, iniciando OCR");
-            processOCR(imageBase64);
-        }
-    });
-
-    function processOCR(base64Data) {
-        alert("Processando OCR");
-        progressBarFill.style.width = '50%';
-        progressInfo.innerHTML = `Carregando: 50%`;
-
-        Tesseract.recognize(
-            `data:image/jpeg;base64,${base64Data}`,
-            'por', // Define o idioma para português
-            {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        const progress = Math.round(m.progress * 100);
-                        progressBarFill.style.width = `${progress}%`;
-                        progressInfo.innerHTML = `Carregando: ${progress}%`;
-                    }
-                }
-            }
-        ).then(({ data: { text } }) => {
-            progressBarFill.style.width = '100%';
-            msg.innerHTML = '';
-            alert("OCR concluído, exibindo resultado");
-            openTextInNewWindow(text);
-        }).catch(error => {
-            msg.innerHTML = `Erro ao processar o arquivo.`;
-            alert("Erro ao processar o arquivo: " + error.message);
-            console.error('Error:', error);
-        });
-    }
-
-    function openTextInNewWindow(text) {
-        alert("Abrindo resultado do OCR em nova janela");
-        let newWindow = window.open("", "_blank");
-        newWindow.document.write("<html><head><title>OCR Resultado</title></head><body>");
-        newWindow.document.write("<pre>" + text + "</pre>");
-        newWindow.document.write("</body></html>");
-        newWindow.document.close();
-    }
-});
